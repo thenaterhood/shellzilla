@@ -11,6 +11,7 @@ At time of writing README, contents:
 
     display_configurator.sh     A simple, semi-graphical script to set up basic multi-monitor settings
     devswitch.sh                A simple script to turn xinput devices on and off
+    audio_ripper.sh             An ffmpeg-based script that rips/converts audio from audio/video files with given names or prefixes
     
 Disclaimer
 ------------
