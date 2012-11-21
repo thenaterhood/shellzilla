@@ -15,7 +15,7 @@ echo "Ripping from files in `pwd`"
 
 #
 # Checks to make sure ffmpeg is installed
-if [ "`whereis ffmpeg`" == "ffmpeg:" ]; then
+if [ ! `command -v ffmpeg` ]; then
     echo "You need ffmpeg installed to use this script, exiting..."
     exit 1
 fi

@@ -20,7 +20,7 @@ deviceid=`xinput | grep -i $device_name | cut -d"=" -f2 | cut -c 1-2`
 status=`xinput list-props $deviceid | grep "Device Enabled" | cut -c 24`
 
 # Checks to make sure script dependencies are satisfied
-if [ "`whereis xinput`" == "xinput:" ]; then
+if [ ! `command -v xinput` ]; then
     echo "You need to install xinput to use this script."
     exit 1
 fi

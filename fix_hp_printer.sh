@@ -6,6 +6,11 @@
 # Script that fixes the HP printer ownership issue
 #########################
 #
+# Checks to make sure required software is installed
+if [ ! `command -v lsusb` ]; then
+    echo "This script requires the lsusb utility. Exiting..."
+    exit 1
+fi
 
 # Finds the bus and current HP device connected (if any)
 bus=`lsusb | grep Hewlett-Packard | cut -c 5-7`

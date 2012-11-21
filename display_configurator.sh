@@ -14,12 +14,12 @@ default_monitor=LVDS1
 
 #
 # Checks to make sure script dependencies are satisfied
-if [ "`whereis xrandr`" == "xrandr:" ]; then
+if [ ! `command -v xrandr` ]; then
     echo "You need to install xrandr to use this script."
     exit 1
 fi
 
-if [ "`whereis dialog`" == "dialog:" ]; then
+if [ ! `command -v dialog` ]; then
     echo "You need to install dialog to use this script."
     exit 1
 fi
