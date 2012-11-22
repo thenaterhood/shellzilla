@@ -13,6 +13,7 @@ At time of writing README, contents:
     devswitch.sh                A simple script to turn xinput devices on and off
     audio_ripper.sh             An ffmpeg-based script that rips/converts audio from a/v files with given names or prefixes
     fix_hp_printer.sh           Fixes an ownership issue with HP printers on older HPLIP versions
+    volumeControl.sh            SScript to raise and lower volume and toggle mute.  Useful for WM's that don't have it natively.
     
 Disclaimer
 ------------
