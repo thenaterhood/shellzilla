@@ -1,10 +1,15 @@
 #!/bin/bash
 #
-#########################
-# Nate Levesque
-# 9/02/2011
-# Script that fixes the HP printer ownership issue
-#########################
+# Author: Nate Levesque <public@thenaterhood.com>
+# Language: Shell
+# Filename: fix_hp_printer.sh
+#
+# Description:
+#   fixes an ownership issue with HP printers in older versions of
+#   hplip so that the printer is usable.  Requires root.
+#
+
+
 #
 # Checks to make sure required software is installed
 if [ ! `command -v lsusb` ]; then
