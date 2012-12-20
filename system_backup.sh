@@ -15,7 +15,7 @@ day=`date +%d`
 month=`date +%b`
 year=`date +%Y`
 archive="tgz"
-mountpt="/"
+mountpt="/run/media/nate"
 user="nate"
 
 if [ ! `command -v dialog` ]; then
