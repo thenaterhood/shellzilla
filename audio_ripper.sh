@@ -1,12 +1,13 @@
 #!/bin/bash
 #
-################################
-# Nate Levesque
-# 11/15/2012
-# Script to rip audio from a directory of video/audio files
+# Author: Nate Levesque <public@thenaterhood.com)
+# Language: Shell
+# Filename: audio_ripper.sh
 #
-################################
-
+# Description:
+#   rips audio from a directory of video/audio files to .aac format
+#
+#
 #
 # Gets the name or the prefix for a group of video/audio files to be
 # ripped or converted to .aac
