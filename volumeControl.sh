@@ -1,6 +1,11 @@
 #!/bin/bash
-# Simple script to change the volume, useful to bind to keys in 
-# desktops/WMs that don't have their own control for it.
+# Author: Nate Levesque <public@thenaterhood.com>
+# Language: BASH
+# Filename: volumeControl.sh
+#
+# Description:
+#   Simple script to change the volume, useful to bind to keys in 
+#   desktops/WMs that don't have their own control for it.
 #
 # Arguments:
 #   (none): displays the current volume to the terminal and pops up
@@ -15,11 +20,13 @@
 #
 option=$1
 
+# Basic dependency check
 if [ ! `command -v amixer` ]; then
     echo "You do not have amixer installed, this script requires it."
     exit 1
 fi
 
+# Performs the requested operation
 case "$option" in
     "")
         echo "`amixer scontents | grep Playback | tail -2`"
