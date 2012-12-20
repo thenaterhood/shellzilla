@@ -13,7 +13,6 @@
 
 user=`whoami`
 echo "Locking and suspending for $user, 5 seconds to cancel (ctrl+c)"
-sleep 5
-sudo pm-suspend &
-su -c slimlock $user
+sudo sleep 5
+slimlock & sudo pm-suspend
 exit
