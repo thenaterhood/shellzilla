@@ -15,7 +15,7 @@ day=`date +%d`
 month=`date +%b`
 year=`date +%Y`
 archive="tgz"
-mountpt="/run/media"
+mountpt="/run/media/$USER"
 user="nate"
 
 if [ ! `command -v dialog` ]; then
@@ -48,7 +48,6 @@ cd /
 
 # Asks what backup we want- rsync /home or tar /
 backup_option=$(dialog --output-fd 1 --backtitle "Backup Options" --radiolist "Select one:" 12 40 4 1 "home sync" off 2 "OS image (requires root)" off)
-echo $backup_option
 backup_path="$mountpt/$drive/backups"
 
 # Runs the actual backup- full partition backup
@@ -62,7 +61,7 @@ case "$backup_option" in
     2)
         backup_type="os"
         mkdir $mountpt/$drive/backups/$backup_type/$backup_name
-        tar cvpzf $backup_path/$backup_type/$backup_name/$backup_file --exclude=/proc --exclude=/lost+found --exclude=/media --exclude=/run --exclude=/mnt --exclude=/sys --exclude=/dev/shm --exclude=/tmp --exclude=/home /
+        sudo tar cvpzf $backup_path/$backup_type/$backup_name/$backup_file --exclude=/proc --exclude=/lost+found --exclude=/media --exclude=/run --exclude=/mnt --exclude=/sys --exclude=/dev/shm --exclude=/tmp --exclude=/home /
     ;;
 esac
 
