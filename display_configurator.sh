@@ -1,14 +1,16 @@
 #!/bin/bash
 #
-# Nate Levesque
-# Deals with extending or cloning the desktop 
-# between the internal and 1 external monitor 
-# with xrandr
-# 11/12/2012
+# Author: Nate Levesque <public@thenaterhood.com>
+# Language: Shell
+# Filename: display_configurator.sh
+#
+# Description:
+#   Deals with extending or cloning the desktop between the internal 
+#   and 1 external monitor using xrandr
 #
 
 #
-# Basic options
+# Basic options.  Set the direction of your extra screen and main screen
 monitor_direction=left
 default_monitor=LVDS1
 
@@ -27,7 +29,9 @@ fi
 # Lists available ports (ones with something connected) in dialog and
 # display options.  Returns them both to radioOptions, space separated
 
-radioOptions=$(dialog --output-fd 1 --backtitle "Available Display Ports" --radiolist "Select port:" 12 40 4 `xrandr | grep -w "connected" | sed 's/ .*//g' | awk '{print NR " " $0 " off"}' | sed ':a;N;$!ba;s/\n/ /g'`--and-widget --backtitle "Display Options" --radiolist "Select an option:" 12 40 4 1 "Extend" on 2 "Clone" off 3 "Switch display" off 4 "Normal display" off)
+if [ `command -v dialog` ]; then
+    radioOptions=$(dialog --output-fd 1 --backtitle "Available Display Ports" --radiolist "Select port:" 12 40 4 `xrandr | grep -w "connected" | sed 's/ .*//g' | awk '{print NR " " $0 " off"}' | sed ':a;N;$!ba;s/\n/ /g'`--and-widget --backtitle "Display Options" --radiolist "Select an option:" 12 40 4 1 "Extend" on 2 "Clone" off 3 "Switch display" off 4 "Normal display" off)
+fi
 
 #
 # Sets relevant variables
