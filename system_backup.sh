@@ -15,7 +15,7 @@ day=`date +%d`
 month=`date +%b`
 year=`date +%Y`
 archive="tgz"
-mountpt="/run/media/nate"
+mountpt="/"
 user="nate"
 
 if [ ! `command -v dialog` ]; then
@@ -36,6 +36,7 @@ fi
 # Asks for the drive semi-graphically with dialog and 
 dialog --backtitle "Backup" --msgbox "Mount media device and hit enter." 5 40
 NUM=$(dialog --output-fd 1 --backtitle "Backup" --radiolist "Select device:" 12 40 4 0 /dev/null off `ls $mountpt | sed 's/ .*//g' | awk '{print NR " " $0 " off"}' | sed ':a;N;$!ba;s/\n/ /g'`)
+echo $NUM
 drive="`ls $mountpt | head -$NUM | tac | head -1`"
 
 # Parses the data above into a filename for the backup
@@ -47,20 +48,25 @@ info_file="$HOSTNAME-$month-$day-$year.info"
 cd /
 
 # Asks what backup we want- rsync /home or tar /
-backup_option=$(dialog --output-fd 1 --backtitle "Backup Options" --radiolist "Select one:" 12 40 4 1 "home sync" off 2 "OS image (requires root)")
+backup_option=$(dialog --output-fd 1 --backtitle "Backup Options" --radiolist "Select one:" 12 40 4 1 "home sync" off 2 "OS image (requires root)" off)
+echo $backup_option
 backup_path="$mountpt/$drive/backups"
 
 # Runs the actual backup- full partition backup
-if [ $backup_option = "1" ]; then
-    backup_type="users"
-    backup_name=$user
-    info_file="$backup_name-HOME-$user.info"
-    rsync -avhL --ignore-errors --delete --delete-after --recursive /home/$user/ $backup_path/$backup_type/$user/ --exclude-from /home/$user/.exclude --delete-excluded --progress
-elif [ $backup_option = "2" ]; then
-    backup_type="os"
-    mkdir $mountpt/$drive/backups/$backup_type/$backup_name
-    tar cvpzf $backup_path/$backup_type/$backup_name/$backup_file --exclude=/proc --exclude=/lost+found --exclude=/media --exclude=/run --exclude=/mnt --exclude=/sys --exclude=/dev/shm --exclude=/tmp --exclude=/home /
-fi
+case "$backup_option" in
+    1)
+        backup_type="users"
+        backup_name=$user
+        info_file="$backup_name-HOME-$user.info"
+        rsync -avhL --ignore-errors --delete --delete-after --recursive /home/$user/ $backup_path/$backup_type/$user/ --exclude-from /home/$user/.exclude --delete-excluded --progress
+        exit 0
+    ;;
+    2)
+        backup_type="os"
+        mkdir $mountpt/$drive/backups/$backup_type/$backup_name
+        tar cvpzf $backup_path/$backup_type/$backup_name/$backup_file --exclude=/proc --exclude=/lost+found --exclude=/media --exclude=/run --exclude=/mnt --exclude=/sys --exclude=/dev/shm --exclude=/tmp --exclude=/home /
+    ;;
+esac
 
 # Creates the info file
 echo `date` > $backup_path/$backup_type/$backup_name/$info_file
