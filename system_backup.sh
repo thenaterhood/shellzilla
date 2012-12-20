@@ -15,7 +15,7 @@ day=`date +%d`
 month=`date +%b`
 year=`date +%Y`
 archive="tgz"
-mountpt="/"
+mountpt="/run/media"
 user="nate"
 
 if [ ! `command -v dialog` ]; then
@@ -36,7 +36,6 @@ fi
 # Asks for the drive semi-graphically with dialog and 
 dialog --backtitle "Backup" --msgbox "Mount media device and hit enter." 5 40
 NUM=$(dialog --output-fd 1 --backtitle "Backup" --radiolist "Select device:" 12 40 4 0 /dev/null off `ls $mountpt | sed 's/ .*//g' | awk '{print NR " " $0 " off"}' | sed ':a;N;$!ba;s/\n/ /g'`)
-echo $NUM
 drive="`ls $mountpt | head -$NUM | tac | head -1`"
 
 # Parses the data above into a filename for the backup
@@ -59,7 +58,6 @@ case "$backup_option" in
         backup_name=$user
         info_file="$backup_name-HOME-$user.info"
         rsync -avhL --ignore-errors --delete --delete-after --recursive /home/$user/ $backup_path/$backup_type/$user/ --exclude-from /home/$user/.exclude --delete-excluded --progress
-        exit 0
     ;;
     2)
         backup_type="os"
