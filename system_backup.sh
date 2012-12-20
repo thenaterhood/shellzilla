@@ -16,7 +16,6 @@ month=`date +%b`
 year=`date +%Y`
 archive="tgz"
 mountpt="/run/media/$USER"
-user="nate"
 
 if [ ! `command -v dialog` ]; then
     echo "Dialog is not installed, and is required for this script. Exiting..."
@@ -54,9 +53,9 @@ backup_path="$mountpt/$drive/backups"
 case "$backup_option" in
     1)
         backup_type="users"
-        backup_name=$user
-        info_file="$backup_name-HOME-$user.info"
-        rsync -avhL --ignore-errors --delete --delete-after --recursive /home/$user/ $backup_path/$backup_type/$user/ --exclude-from /home/$user/.exclude --delete-excluded --progress
+        backup_name=$USER
+        info_file="$backup_name-HOME-$USER.info"
+        rsync -avhL --ignore-errors --delete --delete-after --recursive /home/$USER/ $backup_path/$backup_type/$USER/ --exclude-from /home/$USER/.exclude --delete-excluded --progress
     ;;
     2)
         backup_type="os"
