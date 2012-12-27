@@ -20,6 +20,7 @@ Contents:
     system_backup.sh            Script to backup a user directory or the Linux OS
     suspend.sh                  Simple script to lock the screen and suspend
     interest_calculator.sh      Script to calculate interest on a bank account over a period of time
+    otf_multitouch.sh           Performs an on-the-fly configuration of touchpad multitouch settings
     
 Disclaimer
 ------------
