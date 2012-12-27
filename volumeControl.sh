@@ -1,6 +1,6 @@
 #!/bin/bash
 # Author: Nate Levesque <public@thenaterhood.com>
-# Language: BASH
+# Language: Shell
 # Filename: volumeControl.sh
 #
 # Description:
