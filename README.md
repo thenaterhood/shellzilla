@@ -21,6 +21,7 @@ Contents:
     suspend.sh                  Simple script to lock the screen and suspend
     interest_calculator.sh      Script to calculate interest on a bank account over a period of time
     otf_multitouch.sh           Performs an on-the-fly configuration of touchpad multitouch settings
+    batch_print.sh              Downloads and prints files en-masse from a defined url and list of files given
     
 Disclaimer
 ------------
