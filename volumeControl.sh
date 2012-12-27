@@ -26,21 +26,35 @@ if [ ! `command -v amixer` ]; then
     exit 1
 fi
 
+# Defines a common notification function
+notify(){
+    status="`amixer scontents | grep Playback | tail -2`"
+    export DISPLAY=:0.0 && notify-send \
+    -i /usr/share/icons/gnome/scalable/devices/headphones-symbolic.svg "$activity" "$status"
+}
+
+
 # Performs the requested operation
 case "$option" in
     "")
         echo "`amixer scontents | grep Playback | tail -2`"
-        notify-send -i /usr/share/icons/gnome/32x32/status/audio-volume-high.png "`amixer scontents | grep Playback | tail -2`" 2>/dev/null
+        activity="Playback Status"
+        notify
         ;;
     up)
         amixer set Master 5%+ unmute
+        activity="Volume Raised"
+        #notify
         ;;
     down)
         amixer set Master 5%- unmute
+        activity="Volume Lowered"
+        #notify
         ;;
     mute)
         amixer set Master toggle
         echo "Volume mute toggled"
-        notify-send -i /usr/share/icons/gnome/32x32/status/audio-volume-high.png "Volume Mute Toggled" 2>/dev/null
+        activity="Volume Mute Toggled"
+        notify
         ;;
 esac
