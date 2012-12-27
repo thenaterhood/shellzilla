@@ -19,6 +19,7 @@ Contents:
     volumeControl.sh            Script to raise and lower volume and toggle mute. Useful in primitive WMs
     system_backup.sh            Script to backup a user directory or the Linux OS
     suspend.sh                  Simple script to lock the screen and suspend
+    interest_calculator.sh      Script to calculate interest on a bank account over a period of time
     
 Disclaimer
 ------------
