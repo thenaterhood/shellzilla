@@ -12,7 +12,6 @@
 # This is online mainly to give me incentive to clean it up
 # 
 # TODO:  clean up everything and generally improve the code a lot
-clear
 
 ########################################################################
 # Basic settings.  Set these before using the script                   #
@@ -52,21 +51,18 @@ completedWithErrors(){
     createInfo
 }
 
-# Implements a few basic dependency checks
-if [ ! `command -v dialog` ]; then
-    echo "Dialog is not installed, and is required for this script. Exiting..."
-    exit 1
-fi
+# Dependency check function
+depCheck(){
+    if [ ! `command -v $1` ]; then
+        echo "You need to install the $1 utility to use this script.  Exiting..."
+        exit 1
+    fi
+}
 
-if [ ! `command -v rsync` ]; then
-    echo "rsync is not installed, and is required for this script. Exiting..."
-    exit 1
-fi
-
-if [ ! `command -v tar` ]; then
-    echo "tar is not installed, and is required for this script.  Exiting..."
-    exit 1
-fi
+# Check that required software is installed
+depCheck dialog
+depCheck rsync
+depCheck tar
 
 # Asks for the backup drive semi-graphically with dialog
 dialog --backtitle "Backup" --msgbox "Mount media device and hit enter." 5 40
