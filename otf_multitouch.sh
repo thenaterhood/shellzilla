@@ -14,15 +14,23 @@
 #   configured system-wide if there isn't root access.
 #
 
-# A quick dependency check so the program can fail gracefully if things
-# happen to be missing
-if [ ! `command -v xinput` ]; then
-    echo "Xinput is not available but is required for this script."
-    exit 1
-fi
+# Implement common code for dependency checks
+depCheck(){
+    # Checks if a piece of software exists on a system and
+    # if it doesn't, stops execution and exits with an error.
+    #
+    # Arguments:
+    #   $1: a command to test
+    #
+    if [ ! `command -v $1` ]; then
+        echo "You need $1 installed to use this script, exiting..."
+        exit 1
+    fi
+}
 
-# Sets the properties
-sleep 5
+# Check that required utilities are available
+depCheck xinput
+
 # Enables 2-finger scrolling and related settings (will emulate 2-fingers
 # if touchpad is not true multitouch)
 xinput set-int-prop "SynPS/2 Synaptics TouchPad" "Two-Finger Scrolling" 8 1
