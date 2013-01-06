@@ -25,6 +25,34 @@
 ########################################################################
 default_device=touchpad
 
+# Implement common code for dependency checks
+depCheck(){
+    # Checks if a piece of software exists on a system and
+    # if it doesn't, stops execution and exits with an error.
+    #
+    # Arguments:
+    #   $1: a command to test
+    #
+    if [ ! `command -v $1` ]; then
+        echo "You need $1 installed to use this script, exiting..."
+        exit 1
+    fi
+}
+
+notify(){
+    # Defines a common function the script can use for notification
+    # on the console and the gui
+    #
+    export DISPLAY=:0.0 && notify-send \
+    -i /usr/share/icons/gnome/scalable/devices/input-touchpad-symbolic.svg $device_name "$device_name $1"
+    
+    echo "$device_name is now $1"
+}
+
+
+# check that dependencies are satisfied
+depCheck xinput
+
 # Pick up any arguments given and use that, or fall back on the default
 case "$1" in
     "")
@@ -36,11 +64,6 @@ case "$1" in
     ;;
 esac
 
-# Checks to make sure script dependencies are satisfied
-if [ ! `command -v xinput` ]; then
-    echo "You need to install xinput to use this script."
-    exit 1
-fi
 
 # Gets the device id for the device
 deviceid=`xinput | grep -i $device_name | cut -d"=" -f2 | cut -c 1-2`
@@ -53,26 +76,18 @@ deviceid=`xinput | grep -i $device_name | cut -d"=" -f2 | cut -c 1-2`
 # Gets the current status of the device
 status=`xinput list-props $deviceid | grep "Device Enabled" | cut -c 24`
 
-# Defines a common function the script can use for notification
-notify(){
-    export DISPLAY=:0.0 && notify-send \
-    -i /usr/share/icons/gnome/scalable/devices/input-touchpad-symbolic.svg $device_name "$device_name $change"
-    
-    echo "$device_name is now $change"
-}
-
 # Changes it to the opposite status
 case "$status" in
     1)
     xinput set-int-prop $deviceid "Device Enabled" 8 0
-    change=disabled
-    notify
+    # Notify the user the device was disabled
+    notify disabled
     ;;
     
     0)
     xinput set-int-prop $deviceid "Device Enabled" 8 1
-    change=enabled
-    notify
+    # Notify the user the device was enabled
+    notify enabled
     ;;
 esac
 
