@@ -17,18 +17,31 @@
 #
 # Example:
 #   ./volumeControl.sh mute - toggles mute
+#   ./volumeControl.sh - shows current playback status
+#   ./volumeControl.sh up - raise volume 5%
 #
 option=$1
 
-# Basic dependency check
-if [ ! `command -v amixer` ]; then
-    echo "You do not have amixer installed, this script requires it."
-    exit 1
-fi
+# Implement common code for dependency checks
+depCheck(){
+    # Checks if a piece of software exists on a system and
+    # if it doesn't, stops execution and exits with an error.
+    #
+    # Arguments:
+    #   $1: a command to test
+    #
+    if [ ! `command -v $1` ]; then
+        echo "You need $1 installed to use this script, exiting..."
+        exit 1
+    fi
+}
 
-# Defines a common notification function
 notify(){
+    # Provides a common way for the script to send notifications
+    # to the user in the console and in the gui.
+    #
     status="`amixer scontents | grep Playback | tail -2`"
+    echo "$activity \n $status"
     export DISPLAY=:0.0 && notify-send \
     -i /usr/share/icons/gnome/scalable/devices/headphones-symbolic.svg "$activity" "$status"
 }
@@ -37,7 +50,6 @@ notify(){
 # Performs the requested operation
 case "$option" in
     "")
-        echo "`amixer scontents | grep Playback | tail -2`"
         activity="Playback Status"
         notify
         ;;
@@ -53,7 +65,6 @@ case "$option" in
         ;;
     mute)
         amixer set Master toggle
-        echo "Volume mute toggled"
         activity="Volume Mute Toggled"
         notify
         ;;
