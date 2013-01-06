@@ -14,17 +14,18 @@
 monitor_direction=left
 default_monitor=LVDS1
 
+# Implement a common dependency check function to save on code
+depCheck(){
+    if [ ! `command -v $1` ]; then
+        echo "You need to install $1 to use this script."
+        exit 1
+    fi
+}
+
 #
 # Checks to make sure script dependencies are satisfied
-if [ ! `command -v xrandr` ]; then
-    echo "You need to install xrandr to use this script."
-    exit 1
-fi
-
-if [ ! `command -v dialog` ]; then
-    echo "You need to install dialog to use this script."
-    exit 1
-fi
+depCheck xrandr
+depCheck dialog
 
 # Lists available ports (ones with something connected) in dialog and
 # display options.  Returns them both to radioOptions, space separated

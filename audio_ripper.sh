@@ -14,12 +14,16 @@
 read -p "Name prefix for group of files or filename to rip: " prefix
 echo "Ripping from files in `pwd`"
 
-#
-# Checks to make sure ffmpeg is installed
-if [ ! `command -v ffmpeg` ]; then
-    echo "You need ffmpeg installed to use this script, exiting..."
-    exit 1
-fi
+# Implements a common function for dependency checks
+depCheck(){
+    if [ ! `command -v $1` ]; then
+        echo "You need $1 installed to use this script, exiting..."
+        exit 1
+    fi
+}
+
+# Check that required software is available
+depCheck ffmpeg
 
 #
 # Creates a directory to store the ripped audio

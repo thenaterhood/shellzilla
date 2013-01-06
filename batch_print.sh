@@ -21,17 +21,17 @@ baseUrl=http://www.thenaterhood.com/
 print_destination=mcx_0
 #
 
+# Implement common code for dependency checks
+depCheck(){
+    if [ ! `command -v $1` ]; then
+        echo "You need to install $1 to use this script"
+        exit 1
+    fi
+}
 #
 # Checking for required software
-if [ ! `command -v curl` ]; then
-	echo "You need to install curl to use this script"
-	exit 1
-fi
-
-if [ ! `command -v lp` ]; then
-	echo "You need lp to use this script"
-	exit 1
-fi
+depCheck curl
+depCheck lp
 
 #
 # Requesting list of files from the user
