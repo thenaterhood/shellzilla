@@ -23,8 +23,14 @@ print_destination=mcx_0
 
 # Implement common code for dependency checks
 depCheck(){
+    # Checks if a piece of software exists on a system and
+    # if it doesn't, stops execution and exits with an error.
+    #
+    # Arguments:
+    #   $1: a command to test
+    #
     if [ ! `command -v $1` ]; then
-        echo "You need to install $1 to use this script"
+        echo "You need $1 installed to use this script, exiting..."
         exit 1
     fi
 }
