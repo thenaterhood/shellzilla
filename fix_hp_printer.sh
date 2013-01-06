@@ -9,13 +9,22 @@
 #   hplip so that the printer is usable.  Requires root.
 #
 
+# Implement common code for dependency checks
+depCheck(){
+    # Checks if a piece of software exists on a system and
+    # if it doesn't, stops execution and exits with an error.
+    #
+    # Arguments:
+    #   $1: a command to test
+    #
+    if [ ! `command -v $1` ]; then
+        echo "You need $1 installed to use this script, exiting..."
+        exit 1
+    fi
+}
 
-#
-# Checks to make sure required software is installed
-if [ ! `command -v lsusb` ]; then
-    echo "This script requires the lsusb utility. Exiting..."
-    exit 1
-fi
+# Check to make sure lsusb is available
+depCheck lsusb
 
 # Finds the bus and current HP device connected (if any)
 bus=`lsusb | grep Hewlett-Packard | cut -c 5-7`
