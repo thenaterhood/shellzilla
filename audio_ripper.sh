@@ -11,11 +11,15 @@
 #
 # Gets the name or the prefix for a group of video/audio files to be
 # ripped or converted to .aac
-read -p "Name prefix for group of files or filename to rip: " prefix
-echo "Ripping from files in `pwd`"
 
-# Implements a common function for dependency checks
+# Implement common code for dependency checks
 depCheck(){
+    # Checks if a piece of software exists on a system and
+    # if it doesn't, stops execution and exits with an error.
+    #
+    # Arguments:
+    #   $1: a command to test
+    #
     if [ ! `command -v $1` ]; then
         echo "You need $1 installed to use this script, exiting..."
         exit 1
@@ -24,6 +28,9 @@ depCheck(){
 
 # Check that required software is available
 depCheck ffmpeg
+
+read -p "Name prefix for group of files or filename to rip: " prefix
+echo "Ripping from files in `pwd`"
 
 #
 # Creates a directory to store the ripped audio
@@ -45,14 +52,18 @@ else
 fi
 
 # Asks the user whether or not to keep the source files
-read -p "Keep original videos y/n? " keep
-if [ $keep = n ]; then
-    # If the user responds with n, erase the files and report it
+read -p "Keep source files? y/n: " keep
+
+case $keep in
+    "n"|"N")
     rm $prefix*
-    echo "Erased..."
-else
-    # If the user responds with anything else, keep the files
-    echo "Keeping..."
-fi
+    echo "Removed source files."
+    ;;
+    
+    "y"|"Y")
+    echo "Kept source files"
+    ;;
+    
+esac
 
 exit 0
