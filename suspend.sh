@@ -11,8 +11,7 @@
 #   don't work as expected.  Needs to be run from a terminal window.
 
 
-user=`whoami`
-echo "Locking and suspending for $user, 5 seconds to cancel (ctrl+c)"
+echo "Locking and suspending for $USER, 5 seconds to cancel (ctrl+c)"
 sudo sleep 5
 slimlock & sudo pm-suspend
 exit
