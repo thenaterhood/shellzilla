@@ -28,13 +28,16 @@ year=`date +%Y`
 createInfo(){
     # Appends information about the backup to the backup file
     # date, and a list of excluded files and folders
+    #
     echo `date` >> $backup_path/$backup_type/$backup_name/$info_file
     echo "Excluded:" >> $backup_path/$backup_type/$backup_name/$info_file
     cat .exclude >> $backup_path/$backup_type/$backup_name/$info_file
 }
 
 completed(){
-    # Reports backup completed successfully
+    # Reports backup completed successfully by displaying a message
+    # and appending the details to the backup info file
+    #
     dialog --title "Backup Complete" \
     --msgbox "Backup complete- backup set $backup_name" 10 30;
     
@@ -43,7 +46,9 @@ completed(){
 }
 
 completedWithErrors(){
-    # Reports backup completed with errors
+    # Reports backup completed with errors by displaying a message
+    # and appending the details to the backup info file
+    #
     dialog --title "Backup Complete (with errors)" \
     --msgbox "Backup completed with errors- backup set $backup_name" 10 30;
     
@@ -51,10 +56,16 @@ completedWithErrors(){
     createInfo
 }
 
-# Dependency check function
+# Implement common code for dependency checks
 depCheck(){
+    # Checks if a piece of software exists on a system and
+    # if it doesn't, stops execution and exits with an error.
+    #
+    # Arguments:
+    #   $1: a command to test
+    #
     if [ ! `command -v $1` ]; then
-        echo "You need to install the $1 utility to use this script.  Exiting..."
+        echo "You need $1 installed to use this script, exiting..."
         exit 1
     fi
 }
@@ -91,6 +102,7 @@ backup_path="$mountpt/$drive/backups"
 # Runs the actual backup
 case "$backup_option" in
     1)
+        # Implement a backup for a specific user directory
         backup_type="users"
         backup_name=$USER
         info_file="$backup_name-backup.info"
@@ -100,6 +112,7 @@ case "$backup_option" in
             || completedWithErrors
         ;;
     2)
+        # Create an image of the Linux root, minus /home and mounted drives
         backup_type="os"
         mkdir $mountpt/$drive/backups/$backup_type/$backup_name
         sudo tar cvpzf $backup_path/$backup_type/$backup_name/$backup_file \
