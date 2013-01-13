@@ -41,11 +41,11 @@ notify(){
     # to the user in the console and in the gui.
     #
     status="`amixer scontents | grep Playback | tail -2`"
-    echo "$activity \n $status"
+    echo "$activity"
+    echo "$status"
     export DISPLAY=:0.0 && notify-send \
     -i /usr/share/icons/gnome/scalable/devices/headphones-symbolic.svg "$activity" "$status"
 }
-
 
 # Performs the requested operation
 case "$option" in
@@ -69,3 +69,4 @@ case "$option" in
         notify
         ;;
 esac
+
