@@ -29,6 +29,8 @@ CheckIP(){
     lastIP=`awk '/SUCCESS/ { save=$NF }END{ print save }' $logFile 2>/dev/null`
     currIP=`curl icanhazip.com`
     
+    # Checks if a logfile exists and if the last and current IP's are the same,
+    # and pulls the url if either happens to not be the case.
     if [ ! $lastIP = $currIP ] || [ ! -e $logFile ]; then
         curl $URL >/dev/null && Success || Error
     else
