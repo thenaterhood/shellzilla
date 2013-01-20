@@ -10,7 +10,7 @@
 #   Intended to be used as a cron or other schedule job, but can also
 #   be run manually.
 #
-URL=http://www.thenaterhood.com
+URL=
 logFile=$HOME/dyndns.log
 
 Error(){
@@ -26,7 +26,7 @@ Success(){
 CheckIP(){
     # Figures out the previous IP address update by looking at the log file, and exits if it is
     # the same as the current one, reflecting this in the log
-    lastIP=`cat dyndns.log | grep SUCCESS | tail -1 | rev | awk -F'[ \t]+|\\' '{print $1}' | rev`
+    lastIP=`awk '/SUCCESS/ { save=$NF }END{ print save }' $logFile 2>/dev/null`
     currIP=`curl icanhazip.com`
     
     if [ ! $lastIP = $currIP ] || [ ! -e $logFile ]; then
