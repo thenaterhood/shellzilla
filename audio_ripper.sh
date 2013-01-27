@@ -8,9 +8,6 @@
 #   rips audio from a directory of video/audio files to .aac format
 #
 #
-#
-# Gets the name or the prefix for a group of video/audio files to be
-# ripped or converted to .aac
 
 # Implement common code for dependency checks
 depCheck(){
