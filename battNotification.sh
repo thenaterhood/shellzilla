@@ -36,12 +36,11 @@ case $1 in
 	if [ `acpi | cut -d"," -f2 | cut -c 2-3` -lt 25 ]; then show="y"; fi
 	;;
 	"")
-	show=""
+	show="y"
 	;;
 esac
 
-
-if [ $show="y" ]; then	
+if [ "$show" = "y" ]; then	
 	activity="Battery Status"
 	if [ `acpi | cut -d"," -f2 | cut -c 2-3` -lt 25 ]; then activity="Battery under 25%"; fi
 	if [ `acpi | cut -d"," -f2 | cut -c 2-3` -lt 20 ]; then activity="BATTERY LOW"; fi
