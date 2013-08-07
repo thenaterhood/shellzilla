@@ -27,13 +27,14 @@ notify(){
 
 depCheck acpi
 show="n"
+percent=`acpi | cut -d"," -f2 | cut -c 2-4 | sed -e s/'%'//g`
 
 # If we're automatically running the script
 # let's not spam the user, only tell them if
 # there is a reason or if no arguments
 case $1 in
 	"auto")
-	if [ `acpi | cut -d"," -f2 | cut -c 2-3` -lt 25 ]; then show="y"; fi
+	if [ $percent -lt 25 ]; then show="y"; fi
 	;;
 	"")
 	show="y"
@@ -42,8 +43,8 @@ esac
 
 if [ "$show" = "y" ]; then	
 	activity="Battery Status"
-	if [ `acpi | cut -d"," -f2 | cut -c 2-3` -lt 25 ]; then activity="Battery under 25%"; fi
-	if [ `acpi | cut -d"," -f2 | cut -c 2-3` -lt 20 ]; then activity="BATTERY LOW"; fi
+	if [ $percent -lt 25 ]; then activity="Battery under 25%"; fi
+	if [ $percent -lt 20 ]; then activity="BATTERY LOW"; fi
 
 	notify
 fi
