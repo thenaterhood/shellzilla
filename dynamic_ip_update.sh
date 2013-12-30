@@ -27,12 +27,12 @@ CheckIP(){
     # Figures out the previous IP address update by looking at the log file, and exits if it is
     # the same as the current one, reflecting this in the log
     lastIP=`awk '/SUCCESS/ { save=$NF }END{ print save }' $logFile 2>/dev/null`
-    currIP=`curl --connect-timeout 5 icanhazip.com`
+    currIP=`curl -s --connect-timeout 5 icanhazip.com`
     
     # Checks if a logfile exists and if the last and current IP's are the same,
     # and pulls the url if either happens to not be the case.
     if [ ! "$lastIP" = "$currIP" ] || [ ! -e $logFile ]; then
-        curl --connect-timeout 5 $URL >/dev/null && Success || Error
+        curl -s --connect-timeout 5 $URL && Success || Error
     else
         echo "`date`: OK: IP address ($currIP), has not changed since last check." >> $logFile
     fi
