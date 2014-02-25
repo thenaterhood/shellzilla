@@ -64,7 +64,3 @@ providing feedback, or simply dropping a line to say that this software
 was useful to you.
 
 thenaterhood/shellzilla (c) 2012-2014 Nate Levesque (TheNaterhood), [www.thenaterhood.com](http://www.thenaterhood.com)
-
-
-
-thenaterhood/shellzilla repository (c) 2012-2014 Nate Levesque (TheNaterhood)
