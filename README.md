@@ -47,13 +47,9 @@ followed by
 The --init flag initizlizes the submodule repositories and the --recursive flag
 makes sure that nested submodules are initialized and updated as well.
 
-After you've downloaded and initialized the repository, you can link the
-configuration files to their proper locations using the commands below.
-These commands create a symlink in the proper location that points to the repository
-on your computer.  You can update your dot-conf by running
+You can update your copy with:
 
 	cd ~/shellzilla
-	git fetch
 	git pull
 	
 You may want to learn more github commands in order to update specific files.
@@ -61,14 +57,14 @@ You may want to learn more github commands in order to update specific files.
 LICENSE
 ------------
 
-thenaterhood/shellzilla repository (c) 2012 Nate Levesque (TheNaterhood)
+Licensed under the BSD license. See LICENSE for full license text.
 
-[![Creative Commons License](http://i.creativecommons.org/l/by-sa/3.0/88x31.png)](http://creativecommons.org/licenses/by-sa/3.0/)
+Though not required by the license terms, please consider contributing, 
+providing feedback, or simply dropping a line to say that this software 
+was useful to you.
 
-TL;DR: You can use, copy and modify this SO LONG AS you credit me and distribute your remixes with the same license.
+thenaterhood/shellzilla (c) 2012-2014 Nate Levesque (TheNaterhood), [www.thenaterhood.com](http://www.thenaterhood.com)
 
-This work is licensed under the [Creative Commons Attribution-ShareAlike 3.0 Unported License](http://creativecommons.org/licenses/by-sa/3.0/).
 
-You should have received a copy of the license along with this
-work. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/ or send
-a letter to Creative Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
+
+thenaterhood/shellzilla repository (c) 2012-2014 Nate Levesque (TheNaterhood)
