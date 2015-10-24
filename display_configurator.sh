@@ -30,7 +30,7 @@
 
 #
 # Basic options.  Set the direction of your extra screen and main screen
-monitor_direction=left
+monitor_direction=right
 default_monitor=LVDS1
 
 # Implement common code for dependency checks

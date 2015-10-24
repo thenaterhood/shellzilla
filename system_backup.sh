@@ -17,8 +17,8 @@
 # Basic settings.  Set these before using the script                   #
 ########################################################################
 archive="tgz"
-mountpt="/run/media/$USER"
 
+mountpt="/run/media/$USER"
 # Sets appropriate variables
 day=`date +%d`
 month=`date +%b`
