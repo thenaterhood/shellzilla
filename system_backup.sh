@@ -1,133 +1,146 @@
 #!/bin/bash
 #
-# Author: Nate Levesque <public@thenaterhood.com>
-# Language: Shell
-# Filename: system_backup.sh
+# A data offloading/backup script based on rsync and tar
 #
-# Description:
-#   Basic script that implements a couple of backups
-#   for user files and the OS.  Might require a couple changes
-#   in the Basic Settings section depending on your setup.
-#
-# This is online mainly to give me incentive to clean it up
-# 
-# TODO:  clean up everything and generally improve the code a lot
+######################################
+#             SETTINGS               #
+######################################
 
-########################################################################
-# Basic settings.  Set these before using the script                   #
-########################################################################
-archive="tgz"
+ARCHIVE_TYPE="tgz"
+# When run, you'll be presented with a list of locations here to offload to
+MEDIA_MOUNTPOINT="/run/media/$USER"
+# The path on the media to offload user data to. "/" is the root of the mountpt
+# If creating an archive, it will be named with the current date
+USER_PATH_ON_MEDIA="/backups/users/$USER"
+# The path on the media to offload / data to
+# If creating an archive, it will be named with the current date
+ROOT_PATH_ON_MEDIA="/backups/os"
 
-mountpt="/run/media/$USER"
-# Sets appropriate variables
-day=`date +%d`
-month=`date +%b`
-year=`date +%Y`
+######################################
+#            END SETTINGS            #
+######################################
+DAY=`date +%d`
+MONTH=`date +%b`
+YEAR=`date +%Y`
 
-# Defining a few functions to use later
-createInfo(){
-    # Appends information about the backup to the backup file
-    # date, and a list of excluded files and folders
-    #
-    echo `date` >> $backup_path/$backup_type/$backup_name/$info_file
-    echo "Excluded:" >> $backup_path/$backup_type/$backup_name/$info_file
-    cat .exclude >> $backup_path/$backup_type/$backup_name/$info_file
+######################################
+#             FUNCTIONS              #
+######################################
+checkForCommand(){
+  # Simple check to make sure we have everything we expect to use
+  # First argument (string) is checked for existence
+  if [ ! `command -v $1` ]; then
+      echo "You need $1 installed to use this script, exiting..."
+      exit 1
+  fi
 }
 
-completed(){
+askForAction(){
+  backup_option=$(dialog --output-fd 1 --backtitle "Backup Options" --radiolist \
+      "Select one:" 18 70 4 \
+      1 "Rsync Home" off \
+      2 "OS Image (requires root)" off \
+      3 "Restore home from rsync" off \
+      )
+
+  if [ $backup_option ]; then
+    echo $backup_option
+  fi
+}
+
+askForBackupDrive(){
+
+  drives=("$MEDIA_MOUNTPOINT"/*/)
+  nDrives=${#drives[@]}
+  iLastDrive=$[nDrives-1]
+
+  drive_option_arr=()
+
+  for i in `seq 0 $iLastDrive`; do
+    currentDrive=$(printf %q ${drives[$i]})
+    drive_option_arr+=("$i")
+    drive_option_arr+=($currentDrive)
+    drive_option_arr+=("off")
+  done
+
+  drive_num="$(dialog --output-fd 1 --backtitle "Backup" --radiolist \
+      "Select device:" 18 70 12 ${drive_option_arr[@]})"
+
+  if [ "$drive_num" ]; then
+    echo ${drives[$drive_num]}
+  fi
+}
+
+backupCompleted(){
     # Reports backup completed successfully by displaying a message
     # and appending the details to the backup info file
     #
     dialog --title "Backup Complete" \
-    --msgbox "Backup complete- backup set $backup_name" 10 30;
-    
+    --msgbox "$1" 10 70;
+
     echo "Backup completed with no problems" > $backup_path/$backup_type/$backup_name/$info_file
     createInfo
 }
 
-completedWithErrors(){
+backupCompletedWithErrors(){
     # Reports backup completed with errors by displaying a message
     # and appending the details to the backup info file
     #
-    dialog --title "Backup Complete (with errors)" \
-    --msgbox "Backup completed with errors- backup set $backup_name" 10 30;
-    
+    dialog --title "Backup Complete (with possible errors)" \
+    --msgbox "Backup completed with errors; $1" 10 70;
+
     echo "Backup completed with errors" > $backup_path/$backup_type/$backup_name/$info_file
     createInfo
 }
 
-# Implement common code for dependency checks
-depCheck(){
-    # Checks if a piece of software exists on a system and
-    # if it doesn't, stops execution and exits with an error.
-    #
-    # Arguments:
-    #   $1: a command to test
-    #
-    if [ ! `command -v $1` ]; then
-        echo "You need $1 installed to use this script, exiting..."
-        exit 1
-    fi
+rsyncWithDialogProgress(){
+  from="$1"
+  to="$2"
+  exclude_from="$3"
+
+  rsync -aL --ignore-errors --info=progress2 --delete --delete-after \
+      --recursive "$from" "$to" \
+      --exclude-from $exclude_from 2>/dev/null | tr $'\r' $'\n' | awk '{ gsub("%", "", $2); print $2; system("") }' | dialog --title "Progress" --gauge "Rsync Progress ($from to $to)" 20 70
 }
 
-# Check that required software is installed
-depCheck dialog
-depCheck rsync
-depCheck tar
+main(){
+  checkForCommand dialog
+  checkForCommand rsync
+  checkForCommand awk
+  checkForCommand tar
 
-# Asks for the backup drive semi-graphically with dialog
-dialog --backtitle "Backup" --msgbox "Mount media device and hit enter." 5 40
-NUM=$(dialog --output-fd 1 --backtitle "Backup" --radiolist \
-    "Select device:" 12 40 4 0 /dev/null off `ls $mountpt | sed 's/ .*//g' \
-    | awk '{print NR " " $0 " off"}' | sed ':a;N;$!ba;s/\n/ /g'`)
+  backup_drive=`askForBackupDrive`
+  [ $backup_drive ] || exit
 
-drive="`ls $mountpt | head -$NUM | tac | head -1`"
+  backup_action=`askForAction`
+  [ $backup_action ] || exit
 
-# Pieces together filenames for the backup and info
-backup_name="$HOSTNAME-$month-$day-$year"
-backup_file="$HOSTNAME-$month-$day-$year.$archive"
-info_file="$HOSTNAME-$month-$day-$year.info"
+  case "$backup_action" in
+      1)
+          to=$backup_drive$USER_PATH_ON_MEDIA
+          from=$HOME
+          mkdir -p "$to"
+          rsyncWithDialogProgress "$from" "$to" "$from/.exclude" && backupCompleted "Done!" || backupCompletedWithErrors "Some errors may have occurred while performing action"
+          ;;
+      2)
+          # Create an image of the Linux root, minus /home and mounted drives
+          backup_type="os"
+          backup_name=`hostname`-$year-$month-$day
+          to=$backup_drive$ROOT_PATH_ON_MEDIA/$backup_name
+          mkdir -p "$to"
+          sudo tar cvpzf $to \
+              --exclude=/proc --exclude=/lost+found --exclude=/media \
+              --exclude=/run --exclude=/mnt --exclude=/sys \
+              --exclude=/dev/shm --exclude=/tmp --exclude=/home --exclude=/.btrfs / && backupCompleted "OS Tarball created" \
+              || backupCompletedWithErrors "OS Tarball created, but may not be valid."
+          ;;
+      3)
+          to=$HOME
+          from=$backup_drive$USER_PATH_ON_MEDIA
+          rsyncWithDialogProgress "$from" "$to" "$from/.exclude" && chown -R $USER $to && backupCompleted "Restore complete, enter when ready." || backupCompletedWithErrors "Restore may not have completed fully."
+          ;;
+  esac
 
-# Moves into the system root
-cd /
+}
 
-# Ask what backup to perform- rsync /home/$USER or tarball OS
-backup_option=$(dialog --output-fd 1 --backtitle "Backup Options" --radiolist \
-    "Select one:" 12 40 4 1 "home sync" off 2 "OS image (requires root)" off)
-
-backup_path="$mountpt/$drive/backups"
-
-
-
-# Runs the actual backup
-case "$backup_option" in
-    1)
-        # Implement a backup for a specific user directory
-        backup_type="users"
-        backup_name=$USER
-        info_file="$backup_name-backup.info"
-        rsync -avhL --ignore-errors --delete --delete-after \
-            --recursive /home/$USER/ $backup_path/$backup_type/$USER/ \
-            --exclude-from /home/$USER/.exclude --delete-excluded --progress && completed\
-            || completedWithErrors
-        ;;
-    2)
-        # Create an image of the Linux root, minus /home and mounted drives
-        backup_type="os"
-        mkdir $mountpt/$drive/backups/$backup_type/$backup_name
-        sudo tar cvpzf $backup_path/$backup_type/$backup_name/$backup_file \
-            --exclude=/proc --exclude=/lost+found --exclude=/media \
-            --exclude=/run --exclude=/mnt --exclude=/sys \
-            --exclude=/dev/shm --exclude=/tmp --exclude=/home / && completed\
-            || completedWithErrors
-        ;;
-esac
-
-# To Restore
-# Files
-# Just make users then replace /home with backup copy. Permission 
-# problems may apply
-# - TO RESTORE (from the tarball)
-#  tar xvpfz backup.tgz -C /
-exit 0
-
+main
