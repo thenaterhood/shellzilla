@@ -1,146 +1,216 @@
 #!/bin/bash
 #
-# A data offloading/backup script based on rsync and tar
+# Author: Nate Levesque <public@thenaterhood.com>
+# Language: Shell
+# Filename: system_backup.sh
 #
-######################################
-#             SETTINGS               #
-######################################
+# Description:
+#   Basic script that implements a couple of backups
+#   for user files and the OS.  Might require a couple changes
+#   in the Basic Settings section depending on your setup.
+#
+# This is online mainly to give me incentive to clean it up
+#
+# TODO:  clean up everything and generally improve the code a lot
 
-ARCHIVE_TYPE="tgz"
-# When run, you'll be presented with a list of locations here to offload to
-MEDIA_MOUNTPOINT="/run/media/$USER"
-# The path on the media to offload user data to. "/" is the root of the mountpt
-# If creating an archive, it will be named with the current date
-USER_PATH_ON_MEDIA="/backups/users/$USER"
-# The path on the media to offload / data to
-# If creating an archive, it will be named with the current date
-ROOT_PATH_ON_MEDIA="/backups/os"
+########################################################################
+# Basic settings.  Set these before using the script                   #
+########################################################################
+ARCHIVE_TYPE=
+FROM=
+TO=
+EXCLUDE_FILE=
+LOG_FILE=
+RESTORE=false
+NONINVASIVE=false
 
-######################################
-#            END SETTINGS            #
-######################################
-DAY=`date +%d`
-MONTH=`date +%b`
-YEAR=`date +%Y`
+usage()
+{
+   cat <<HERETO
+   USAGE: backup --to TO --from FROM --type rsync|tgz
+        [--exclude EXCLUDE_FILE] [--log LOG_FILE] [--restore] [--safe]
 
-######################################
-#             FUNCTIONS              #
-######################################
-checkForCommand(){
-  # Simple check to make sure we have everything we expect to use
-  # First argument (string) is checked for existence
-  if [ ! `command -v $1` ]; then
-      echo "You need $1 installed to use this script, exiting..."
+   --to                     Destination directory or archive filename
+   --from                   Source directory to back up
+   --type                   Type of archive. "tgz" "rsync" or "dry" for a dry run
+   --exclude                List of locations to exclude from the backup. Defaults
+                            to {FROM}/.exclude.
+   --restore                Do a restore instead of a backup.
+   --safe                   Don't verwrite existing files and don't delete non-existing ones.
+                            This pertains to both backups and restores. Defaults to
+                            disabled for legacy reasons.
+HERETO
+}
+
+checkForCommand()
+{ # $command
+    # Checks if a piece of software exists on a system and
+    # if it doesn't, stops execution and exits with an error.
+    #
+    # Arguments:
+    #   $1: a command to test
+    #
+    if [ ! `command -v $1` ]; then
+        echo "You need $1 installed to use this script, exiting..."
+        exit 1
+    fi
+}
+
+# Defining a few functions to use later
+createInfoFile()
+{ # $info_file
+    # Appends information about the backup to the backup file
+    # date, and a list of excluded files and folders
+    #
+    echo `date` > $1
+    echo "Excluded:" >> $1
+    [ -e "$EXCLUDE_FILE" ] && cat $EXCLUDE_FILE >> $1
+}
+
+logWrite()
+{
+  if [ ! -d "$TO" ]; then
+    to_log="/dev/null"
+  else
+    to_log=$TO/$LOG_FILE
+  fi
+
+  if [ ! -d "$FROM" ]; then
+    from_log="/dev/null"
+  else
+    from_log=$FROM/$LOG_FILE
+  fi
+
+  echo "[$(date)]: $1" | tee -a "$to_log" | tee -a "$from_log"
+}
+
+doBackup()
+{
+  logWrite "Starting backup, with options: ARCHIVE_TYPE=$ARCHIVE_TYPE, TO=$TO, FROM=$FROM, SAFE=$NONINVASIVE"
+  logWrite "Excluding files from $EXCLUDE_FILE"
+  case $ARCHIVE_TYPE in
+    dry)
+      logWrite "Dry run. No backup being done, but pretending we are."
+      ;;
+    rsync)
+      if $NONINVASIVE; then
+        rsync -aL --ignore-errors \
+            --recursive "$FROM" "$TO" \
+            --exclude-from "$EXCLUDE_FILE" --info=progress2 \
+            && logWrite "Backup completed successfully" || logWrite "Backup completed with errors"
+      else
+        rsync -aL --ignore-errors --delete --delete-after \
+            --recursive "$FROM" "$TO" \
+            --exclude-from "$EXCLUDE_FILE" --delete-excluded --info=progress2 \
+            && logWrite "Backup completed successfully" || logWrite "Backup completed with errors"
+      fi
+      exit 0
+      ;;
+
+    tgz)
+      ext=$(echo $TO | rev | cut -d"." -f1 | rev | awk '{print tolower($0)}')
+      [ "$ext" != "tgz" ] && [ "$ext" != "gz" ] && TO=$TO.
+      tar -zcf "$TO" -C "$FROM" . \
+          --exclude=/proc --exclude=/lost+found --exclude=/media \
+          --exclude=/run --exclude=/mnt --exclude=/sys \
+          --exclude=/dev/shm --exclude=/tmp --exclude=/home \
+          && logWrite "Backup completed successfully" || logWrite "Backup completed with errors"
+      ;;
+    *)
+      logWrite "Unsupported backup type $ARCHIVE_TYPE"
       exit 1
-  fi
+      ;;
+  esac
 }
 
-askForAction(){
-  backup_option=$(dialog --output-fd 1 --backtitle "Backup Options" --radiolist \
-      "Select one:" 18 70 4 \
-      1 "Rsync Home" off \
-      2 "OS Image (requires root)" off \
-      3 "Restore home from rsync" off \
-      )
+doRestore()
+{
+  logWrite "Starting restore, with options: ARCHIVE_TYPE=$ARCHIVE_TYPE, TO=$TO, FROM=$FROM, SAFE=$NONINVASIVE"
+  logWrite "Excluding files from $EXCLUDE_FILE"
+  case $ARCHIVE_TYPE in
+    dry)
+      logWrite "Dry run. No restore being done, but pretending we are."
+      ;;
+    rsync)
+      if $NONINVASIVE; then
+        rsync -aL --ignore-errors \
+            --recursive "$FROM" "$TO" \
+            --exclude-from "$EXCLUDE_FILE" --info=progress2 \
+            && logWrite "Restore completed successfully" || logWrite "Restore completed with errors"
+      else
+        rsync -aL --ignore-errors --delete --delete-after \
+            --recursive "$FROM" "$TO" \
+            --exclude-from "$EXCLUDE_FILE" --delete-excluded --info=progress2 \
+            && logWrite "Restore completed successfully" || logWrite "Restore completed with errors"
+      fi
+      exit 0
+      ;;
 
-  if [ $backup_option ]; then
-    echo $backup_option
-  fi
-}
-
-askForBackupDrive(){
-
-  drives=("$MEDIA_MOUNTPOINT"/*/)
-  nDrives=${#drives[@]}
-  iLastDrive=$[nDrives-1]
-
-  drive_option_arr=()
-
-  for i in `seq 0 $iLastDrive`; do
-    currentDrive=$(printf %q ${drives[$i]})
-    drive_option_arr+=("$i")
-    drive_option_arr+=($currentDrive)
-    drive_option_arr+=("off")
-  done
-
-  drive_num="$(dialog --output-fd 1 --backtitle "Backup" --radiolist \
-      "Select device:" 18 70 12 ${drive_option_arr[@]})"
-
-  if [ "$drive_num" ]; then
-    echo ${drives[$drive_num]}
-  fi
-}
-
-backupCompleted(){
-    # Reports backup completed successfully by displaying a message
-    # and appending the details to the backup info file
-    #
-    dialog --title "Backup Complete" \
-    --msgbox "$1" 10 70;
-
-    echo "Backup completed with no problems" > $backup_path/$backup_type/$backup_name/$info_file
-    createInfo
-}
-
-backupCompletedWithErrors(){
-    # Reports backup completed with errors by displaying a message
-    # and appending the details to the backup info file
-    #
-    dialog --title "Backup Complete (with possible errors)" \
-    --msgbox "Backup completed with errors; $1" 10 70;
-
-    echo "Backup completed with errors" > $backup_path/$backup_type/$backup_name/$info_file
-    createInfo
-}
-
-rsyncWithDialogProgress(){
-  from="$1"
-  to="$2"
-  exclude_from="$3"
-
-  rsync -aL --ignore-errors --info=progress2 --delete --delete-after \
-      --recursive "$from" "$to" \
-      --exclude-from $exclude_from 2>/dev/null | tr $'\r' $'\n' | awk '{ gsub("%", "", $2); print $2; system("") }' | dialog --title "Progress" --gauge "Rsync Progress ($from to $to)" 20 70
-}
-
-main(){
-  checkForCommand dialog
-  checkForCommand rsync
-  checkForCommand awk
-  checkForCommand tar
-
-  backup_drive=`askForBackupDrive`
-  [ $backup_drive ] || exit
-
-  backup_action=`askForAction`
-  [ $backup_action ] || exit
-
-  case "$backup_action" in
-      1)
-          to=$backup_drive$USER_PATH_ON_MEDIA
-          from=$HOME
-          mkdir -p "$to"
-          rsyncWithDialogProgress "$from" "$to" "$from/.exclude" && backupCompleted "Done!" || backupCompletedWithErrors "Some errors may have occurred while performing action"
-          ;;
-      2)
-          # Create an image of the Linux root, minus /home and mounted drives
-          backup_type="os"
-          backup_name=`hostname`-$year-$month-$day
-          to=$backup_drive$ROOT_PATH_ON_MEDIA/$backup_name
-          mkdir -p "$to"
-          sudo tar cvpzf $to \
-              --exclude=/proc --exclude=/lost+found --exclude=/media \
-              --exclude=/run --exclude=/mnt --exclude=/sys \
-              --exclude=/dev/shm --exclude=/tmp --exclude=/home --exclude=/.btrfs / && backupCompleted "OS Tarball created" \
-              || backupCompletedWithErrors "OS Tarball created, but may not be valid."
-          ;;
-      3)
-          to=$HOME
-          from=$backup_drive$USER_PATH_ON_MEDIA
-          rsyncWithDialogProgress "$from" "$to" "$from/.exclude" && chown -R $USER $to && backupCompleted "Restore complete, enter when ready." || backupCompletedWithErrors "Restore may not have completed fully."
-          ;;
+    tgz)
+      mkdir -p "$TO"
+      if $NONINVASIVE; then
+        tar -xpzf "$FROM" -C "$TO" && logWrite "Restore completed successfully" || logWrite "Restore completed with errors"
+      else
+        tar -xpzf "$FROM" -C "$TO" --overwrite && logWrite "Restore completed successfully" || logWrite "Restore completed with errors"
+      fi
+      ;;
+    *)
+      logWrite "Unsupported restore type $ARCHIVE_TYPE"
+      exit 1
+      ;;
   esac
 
 }
 
-main
+while [[ $# != 0 ]]; do
+  case $1 in
+    --to)
+      TO=$2
+      shift
+      ;;
+    --from)
+      FROM=$2
+      shift
+      ;;
+    --type)
+      ARCHIVE_TYPE=$2
+      shift
+      ;;
+    --exclude)
+      EXCLUDE_FILE=$2
+      shift
+      ;;
+    --restore)
+      RESTORE=true
+      ;;
+    --safe)
+      NONINVASIVE=true
+      ;;
+    --help|-h)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "Unrecognized option $1"
+      usage
+      exit 1
+      ;;
+    esac
+
+    shift
+done
+
+[ -z $EXCLUDE_FILE ] && EXCLUDE_FILE=${FROM}/.exclude
+[ ! -f $EXCLUDE_FILE ] && EXCLUDE_FILE=/dev/null
+
+[ -z $LOG_FILE ] && LOG_FILE=".backuplog"
+
+# Check that required software is installed
+checkForCommand rsync
+checkForCommand tar
+
+if $RESTORE; then
+  doRestore
+else
+  doBackup
+fi
