@@ -20,53 +20,34 @@
 #   ./volumeControl.sh - shows current playback status
 #   ./volumeControl.sh up - raise volume 5%
 #
-option=$1
 
-# Implement common code for dependency checks
-depCheck(){
-    # Checks if a piece of software exists on a system and
-    # if it doesn't, stops execution and exits with an error.
-    #
-    # Arguments:
-    #   $1: a command to test
-    #
-    if [ ! `command -v $1` ]; then
-        echo "You need $1 installed to use this script, exiting..."
-        exit 1
-    fi
-}
+MIXER_COMMAND_VOLUME_UP=true
+MIXER_COMMAND_TOGGLE_MUTE=true
+MIXER_COMMAND_VOLUME_DOWN=true
 
-notify(){
-    # Provides a common way for the script to send notifications
-    # to the user in the console and in the gui.
-    #
-    status="`amixer scontents | grep Playback | tail -2`"
-    echo "$activity"
-    echo "$status"
-    export DISPLAY=:0.0 && notify-send \
-    -i /usr/share/icons/gnome/scalable/devices/headphones-symbolic.svg "$activity" "$status"
-}
+if which amixer &> /dev/null; then
+    MIXER_COMMAND_VOLUME_UP="amixer set Master 5%+"
+    MIXER_COMMAND_VOLUME_DOWN="amixer set Master 5%-"
+    MIXER_COMMAND_TOGGLE_MUTE="amixer set Master toggle"
+fi
 
-# Performs the requested operation
-case "$option" in
+if which pamixer &> /dev/null; then
+    MIXER_COMMAND_VOLUME_UP="pamixer -i 5"
+    MIXER_COMMAND_VOLUME_DOWN="pamixer -d 5"
+    MIXER_COMMAND_TOGGLE_MUTE="pamixer -t"
+fi
+
+case "$1" in
     "")
-        activity="Playback Status"
-        notify
         ;;
     up)
-        amixer set Master 5%+ unmute
-        activity="Volume Raised"
-        #notify
+        $MIXER_COMMAND_VOLUME_UP
         ;;
     down)
-        amixer set Master 5%- unmute
-        activity="Volume Lowered"
-        #notify
+        $MIXER_COMMAND_VOLUME_DOWN
         ;;
     mute)
-        amixer set Master toggle
-        activity="Volume Mute Toggled"
-        notify
+        $MIXER_COMMAND_TOGGLE_MUTE
         ;;
 esac
 
